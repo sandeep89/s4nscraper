@@ -1,6 +1,15 @@
 import React, { Component } from "react";
 import axios from "axios";
+import ReactDOM from 'react-dom';
 
+var decodeHTML = function (html) {
+  var txt = document.createElement('textarea');
+  txt.innerHTML = html;
+  return txt.value;
+};
+
+const API_SERVER_HOST = "http://s4nscraper-api.herokuapp.com/api"
+// const API_SERVER_HOST = "http://localhost:3001/api";
 class App extends Component {
   state = {
     data: [],
@@ -13,11 +22,6 @@ class App extends Component {
   };
 
   componentDidMount() {
-    this.getDataFromDb();
-    if (!this.state.intervalIsSet) {
-      let interval = setInterval(this.getDataFromDb, 1000);
-      this.setState({ intervalIsSet: interval });
-    }
   }
 
   componentWillUnmount() {
@@ -27,51 +31,33 @@ class App extends Component {
     }
   }
 
-  getDataFromDb = () => {
-    fetch("http://localhost:3001/api/getData")
-      .then(data => data.json())
-      .then(res => this.setState({ data: res.data }));
+  getData = (url) => {
+    axios.get(API_SERVER_HOST + "/getData?url="+ url).
+    then(
+      (res) => {
+        console.log(res);
+        this.setState({ htmlContent: res.data });
+        console.log(decodeHTML(res.data));
+        console.log(this.state);
+        ReactDOM.render(decodeHTML(res.data), 
+         document.getElementById('content'))
+      }).
+    catch( (err) => {
+        ReactDOM.render(err, 
+         document.getElementById('html-content'))
+    })
   };
 
-  putDataToDB = message => {
+  userLogin = message => {
     let currentIds = this.state.data.map(data => data.id);
     let idToBeAdded = 0;
     while (currentIds.includes(idToBeAdded)) {
       ++idToBeAdded;
     }
 
-    axios.post("http://localhost:3001/api/putData", { 
+    axios.post(API_SERVER_HOST + "/login", { 
       id: idToBeAdded,
       message: message
-    });
-  };
-
-  deleteFromDB = idTodelete => {
-    let objIdToDelete = null;
-    this.state.data.forEach(dat => {
-      if (dat.id === idTodelete) {
-        objIdToDelete = dat._id;
-      }
-    });
-
-    axios.delete("http://localhost:3001/api/deleteData", {
-      data: {
-        id: objIdToDelete
-      }
-    });
-  };
-
-  updateDB = (idToUpdate, updateToApply) => {
-    let objIdToUpdate = null;
-    this.state.data.forEach(dat => {
-      if (dat.id === idToUpdate) {
-        objIdToUpdate = dat._id;
-      }
-    });
-
-    axios.post("http://localhost:3001/api/updateData", {
-      id: objIdToUpdate,
-      update: { message: updateToApply }
     });
   };
 
@@ -80,56 +66,22 @@ class App extends Component {
     return (
       <div>
         <ul>
-          {data.length <= 0 ? "NO DB ENTRIES YET" : data.map(dat => (
-            <li style={{ padding: "10px" }} key={dat}>
-              <span style={{ color: "gray" }}> id: </span> {dat.id} <br />
-              <span style={{ color: "gray" }}> data: </span>
-              {dat.message}
-            </li>
-          ))}
+          Fect url content
         </ul>
         <div style={{ padding: "10px" }}>
+        URL:
           <input
             type="text"
-            onChange={e => this.setState({ message: e.target.value })}
-            placeholder="add something in the database"
-            style={{ width: "200px" }}
+            onChange={e => this.setState({ url: e.target.value })}
+            style={{ width: "300px" }}
           />
-          <button onClick={() => this.putDataToDB(this.state.message)}>
-            ADD
+          <button onClick={() => this.getData(this.state.url)}>
+            submit
           </button>
         </div>
-        <div style={{ padding: "10px" }}>
-          <input
-            type="text"
-            style={{ width: "200px" }}
-            onChange={e => this.setState({ idToDelete: e.target.value })}
-            placeholder="put id of item to delete here"
-          />
-          <button onClick={() => this.deleteFromDB(this.state.idToDelete)}>
-            DELETE
-          </button>
-        </div>
-        <div style={{ padding: "10px" }}>
-          <input
-            type="text"
-            style={{ width: "200px" }}
-            onChange={e => this.setState({ idToUpdate: e.target.value })}
-            placeholder="id of item to update here"
-          />
-          <input
-            type="text"
-            style={{ width: "200px" }}
-            onChange={e => this.setState({ updateToApply: e.target.value })}
-            placeholder="put new value of the item here"
-          />
-          <button
-            onClick={() =>
-              this.updateDB(this.state.idToUpdate, this.state.updateToApply)
-            }
-          >
-            UPDATE
-          </button>
+        <div id="content" 
+              style={{ border :"1px solid black"}}
+          > 
         </div>
       </div>
     );
