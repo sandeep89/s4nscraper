@@ -8,7 +8,7 @@ var decodeHTML = function (html) {
   return txt.value;
 };
 
-const API_SERVER_HOST = "http://s4nscraper-api.herokuapp.com/api"
+const API_SERVER_HOST = "https://s4nscraper-api.herokuapp.com/api"
 // const API_SERVER_HOST = "http://localhost:3001/api";
 class App extends Component {
   state = {
