@@ -2,12 +2,6 @@ import React, { Component } from "react";
 import axios from "axios";
 import ReactDOM from 'react-dom';
 
-var decodeHTML = function (html) {
-  var txt = document.createElement('textarea');
-  txt.innerHTML = html;
-  return txt.value;
-};
-
 const API_SERVER_HOST = "https://s4nscraper-api.herokuapp.com/api"
 // const API_SERVER_HOST = "http://localhost:3001/api";
 class App extends Component {
@@ -35,11 +29,8 @@ class App extends Component {
     axios.get(API_SERVER_HOST + "/getData?url="+ url).
     then(
       (res) => {
-        console.log(res);
         this.setState({ htmlContent: res.data });
-        console.log(decodeHTML(res.data));
-        console.log(this.state);
-        ReactDOM.render(decodeHTML(res.data), 
+        ReactDOM.render(res.data, 
          document.getElementById('content'))
       }).
     catch( (err) => {
